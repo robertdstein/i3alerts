@@ -14,4 +14,4 @@ Using i3alerts
 You can specify a selection to choose a given iteration of the realtime pipeline. Currently available selections are:
 
 * **"alerts_v2"**: Selection in operation from June 2019 onwards ([Blaufuss et. al 2019](https://arxiv.org/abs/1908.04884)).
-* **"alerts_v1"**: Original selection in place from 2016 to June 2019, consisting of two public selections EHE+HESE. This selection was in place for the detected coincidence of IC17092A and the flaring blazar TXS 0506+056, and was used in the corresponding archival alert analysis.
+* **"alerts_v1"**: Original selection in place from September 2016 to June 2019, consisting of two selections EHE+HESE ([IceCube collab. 2016](https://arxiv.org/abs/1612.06028)). This selection was in place for the detected coincidence of IC17092A and the flaring blazar TXS 0506+056, and was used in the corresponding archival alert analysis. ([IceCube collab. 2018](https://arxiv.org/abs/1807.08816))
