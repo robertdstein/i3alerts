@@ -35,7 +35,7 @@ def integrate_aeff(aeff_df, energy_pdf):
 
     return a_eff
 
-def get_aeff(declination_deg, energy_pdf, selection="alerts_v2", purity="bronze"):
+def base_aeff(declination_deg, energy_pdf, selection="alerts_v2", purity="bronze"):
 
     logging.info(f"You have selected a source at a declination of {declination_deg:.2g} deg, "
                  f"with the {selection} selection and purity {purity}.")
@@ -67,14 +67,47 @@ def divide_time(flux, time_period):
 
     return div_flux
 
-def convert_aeff(declination_deg, energy_pdf,  selection="alerts_v2", purity="bronze"):
-    a_eff = get_aeff(declination_deg, energy_pdf, selection, purity)
-    norm_1gev = ((1. * u.GeV) ** 2. / a_eff).to("erg cm^-2")
-    flux_norm = norm_1gev.to("GeV cm^-2") / (1. * u.GeV ** 2)
-    logging.info(f"Requires a time-integrated flux normalisation of {norm_1gev:.2g} at 1GeV")
-    return flux_norm
+def get_aeff(declination_deg, energy_pdf, selection="alerts_v2", purity="bronze"):
 
-def power_law_aeff(declination_deg, spectral_index=2.0, e_min_gev=10.**2., e_max_gev=10.**7.):
+    a_eff = base_aeff(declination_deg, energy_pdf, selection, purity)
+
+    logging.info(f"Flux-averaged effective area is {a_eff:.2g} for each particle emitted between "
+                 f"{energy_pdf.e_min:.2g} GeV and {energy_pdf.e_max:.2g} GeV ")
+
+    return a_eff
+
+def get_threshold_flux(declination_deg, energy_pdf, selection="alerts_v2", purity="bronze", norm_energy=u.GeV):
+
+    try:
+        norm_energy.to("GeV")
+    except u.core.UnitConversionError as err:
+        raise u.core.UnitConversionError(f"Use a unit of energy for your flux normalisation energy! "
+                                         f"You provided {norm_energy} as a norm_energy") from err
+
+    if not np.logical_and(
+            norm_energy.to("GeV").value < energy_pdf.e_max,
+            norm_energy.to("GeV").value > energy_pdf.e_min):
+        raise ValueError(f"Normalisation energy of {norm_energy} lies outside the energy range of "
+                         f"{energy_pdf.e_min:.2g} GeV - {energy_pdf.e_max:.2g} GeV "
+                         f"for which you have defined your energy PDF.")
+
+    a_eff = get_aeff(declination_deg, energy_pdf, selection, purity)
+
+    flux_threshold_int = 1./a_eff
+
+    flux_threshold_norm = flux_threshold_int * (energy_pdf.f((norm_energy/u.GeV).to("")))
+
+    e2dnde = get_e2dnde(flux_threshold_norm, norm_energy)
+
+    logging.info(f"For this spectrum, we requires a flux of {flux_threshold_norm.to('GeV^-1 cm^-2'):.2g} "
+                 f"at {norm_energy:.2g}")
+
+    return flux_threshold_norm
+
+
+    # flux_threshold = (norm_energy** 2. / a_eff).to("erg cm^-2")
+
+def power_law_aeff(declination_deg, spectral_index=2.0, e_min_gev=1.**2., e_max_gev=10.**7.):
 
     e_pdf_dict = {
         "energy_pdf_name": "power_law",
@@ -83,23 +116,38 @@ def power_law_aeff(declination_deg, spectral_index=2.0, e_min_gev=10.**2., e_max
         "e_max_gev": e_max_gev
     }
 
-    logging.info(f"Assuming a power law with index {spectral_index:.2f}"
-                 f"between {e_min_gev:.2g} GeV and {e_max_gev:.2g}.")
+    logging.info(f"Assuming a power law with index {spectral_index:.2f} "
+                 f"between {e_min_gev:.2g} GeV and {e_max_gev:.2g} GeV.")
 
     epdf = EnergyPDF.create(e_pdf_dict)
 
-    return convert_aeff(declination_deg, epdf)
+    return get_aeff(declination_deg, epdf)
 
-    
-if __name__ == "__main__":
+def get_e2dnde(flux_norm, norm_energy):
 
-    logging.getLogger().setLevel("DEBUG")
+    e2dnde = flux_norm * norm_energy**2.
 
-    res = power_law_aeff(declination_deg=35.)
+    if (flux_norm/(1./u.GeV /u.cm**2)).decompose().unit == "":
+        e2dnde = e2dnde.to("erg cm^-2")
+    else:
+        e2dnde = e2dnde.to("erg cm^-2 s^-1")
 
-    divide_time(res, 0.5*u.year)
+    logging.info(f"This corresponds to E^2dN/dE = {e2dnde:.2g} "
+                 f"at {norm_energy:.2g}")
 
-    # if subselection:
-    #     logging.warning(f"Warning: You have specified the following subselection: {subselection}. "
-    #                     f"Are you sure that you require only these alerts, rather than the full selection?"
-    #                     )
+    return e2dnde
+
+def get_nexp(flux_norm, declination_deg, energy_pdf, selection="alerts_v2", norm_energy=1.*u.GeV):
+
+    flux_threshold = get_threshold_flux(
+        declination_deg,
+        energy_pdf=energy_pdf,
+        norm_energy=norm_energy,
+        selection=selection
+    )
+
+    n_exp = (flux_norm/flux_threshold).to(" ")
+
+    logging.info(f"Given a flux of {flux_norm:.2g} at {norm_energy:.2g}, we have an expectation of {n_exp:.2g}")
+
+    return n_exp

@@ -23,7 +23,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
     ],
-    python_requires='>=3.6',
+    python_requires='>=3',
     install_requires=[
         "numpy>=1.16.0",
         "matplotlib",
@@ -35,6 +35,6 @@ setuptools.setup(
         "coveralls"
     ],
     package_data={'i3alerts': [
-        'effective_area/alerts_v2/*/*.csv']},
+        'effective_area/*/*/*.csv']},
     include_package_data=True
 )
