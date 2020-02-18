@@ -2,7 +2,7 @@ import logging
 import unittest
 from astropy import units as u
 from flarestack.core.energy_pdf import EnergyPDF
-from i3alerts.effective_area import get_nexp, get_aeff, divide_time, power_law_aeff, get_e2dnde
+from i3alerts.effective_area import get_nexp, get_aeff, divide_time, power_law_threshold_flux, get_e2dnde
 
 logger = logging.getLogger()
 logger.setLevel("ERROR")
@@ -69,7 +69,7 @@ class TestTimeIntegrated(unittest.TestCase):
         self.assertAlmostEqual(diff, 0., places=1)
 
     def test_power_law_aeff(self):
-        res = power_law_aeff(declination_deg=10.)
+        res = power_law_threshold_flux(declination_deg=10., norm_energy=1*u.PeV)
         div_flux = divide_time(res, 0.5 * u.year)
         get_e2dnde(div_flux, norm_energy=100*u.TeV)
 
