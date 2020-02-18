@@ -1,7 +1,8 @@
 import logging
 import unittest
 from astropy import units as u
-from i3alerts.effective_area import get_nexp, get_e2dnde, get_aeff, get_threshold_flux, divide_time, EnergyPDF
+from flarestack.core.energy_pdf import EnergyPDF
+from i3alerts.effective_area import get_nexp, get_aeff, divide_time, power_law_aeff, get_e2dnde
 
 logger = logging.getLogger()
 logger.setLevel("ERROR")
@@ -34,7 +35,7 @@ class TestTimeIntegrated(unittest.TestCase):
             # Test ValueError for string declinations
 
             try:
-                get_aeff(declination_deg="7", energy_pdf=epdf, selection=selection)
+                get_aeff(declination_deg="non-number", energy_pdf=epdf, selection=selection)
             except ValueError:
                 pass
 
@@ -54,10 +55,6 @@ class TestTimeIntegrated(unittest.TestCase):
             "e_max_gev": 10. ** 7
         })
 
-        # res = power_law_aeff(declination_deg=10.)
-        #
-        # divide_time(res, 0.5 * u.year)
-        #
         norm_energy = 1. * u.PeV
 
         # Taken from https://arxiv.org/abs/1807.08816 (Fig 4)
@@ -71,6 +68,10 @@ class TestTimeIntegrated(unittest.TestCase):
 
         self.assertAlmostEqual(diff, 0., places=1)
 
+    def test_power_law_aeff(self):
+        res = power_law_aeff(declination_deg=10.)
+        div_flux = divide_time(res, 0.5 * u.year)
+        get_e2dnde(div_flux, norm_energy=100*u.TeV)
 
 if __name__ == '__main__':
     unittest.main()
