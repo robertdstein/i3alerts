@@ -1,0 +1,8 @@
+numpy
+matplotlib
+astropy
+flarestack>=2.0.2
+pandas
+sphinx
+jupyter
+coveralls
