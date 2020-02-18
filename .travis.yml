@@ -19,6 +19,9 @@ matrix:
         - libatlas-base-dev
         - libopenblas-base
         - libopenblas-dev
+notifications:
+  email:
+    on_success: never
 script:
   - coverage run --concurrency=multiprocessing -m unittest discover tests/
   - coverage combine
