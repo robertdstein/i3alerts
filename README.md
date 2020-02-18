@@ -1,4 +1,4 @@
-
+[![Build Status](https://travis-ci.org/robertdstein/i3alerts.svg?branch=master)](https://travis-ci.org/robertdstein/i3alerts) [![Coverage Status](https://coveralls.io/repos/github/robertdstein/i3alerts/badge.svg?branch=master)](https://coveralls.io/github/robertdstein/i3alerts?branch=master) 
 
 This code gives the effective areas of IceCube event selections at different declinations.
 
