@@ -76,7 +76,7 @@ def get_aeff(declination_deg, energy_pdf, selection="alerts_v2", purity="bronze"
 
     return a_eff
 
-def get_threshold_flux(declination_deg, energy_pdf, selection="alerts_v2", purity="bronze", norm_energy=u.GeV):
+def get_threshold_flux(declination_deg, energy_pdf, selection="alerts_v2", purity="bronze", norm_energy=10*u.GeV):
 
     try:
         norm_energy.to("GeV")
@@ -97,17 +97,15 @@ def get_threshold_flux(declination_deg, energy_pdf, selection="alerts_v2", purit
 
     flux_threshold_norm = flux_threshold_int * (energy_pdf.f((norm_energy/u.GeV).to("")))
 
-    e2dnde = get_e2dnde(flux_threshold_norm, norm_energy)
-
     logging.info(f"For this spectrum, we requires a flux of {flux_threshold_norm.to('GeV^-1 cm^-2'):.2g} "
                  f"at {norm_energy:.2g}")
+    get_e2dnde(flux_threshold_norm, norm_energy)
 
     return flux_threshold_norm
 
 
-    # flux_threshold = (norm_energy** 2. / a_eff).to("erg cm^-2")
-
-def power_law_aeff(declination_deg, spectral_index=2.0, e_min_gev=1.**2., e_max_gev=10.**7.):
+def power_law_threshold_flux(declination_deg, spectral_index=2.0, e_min_gev=10.**2., e_max_gev=10.**7.,
+                             selection="alerts_v2", purity="bronze", norm_energy=10*u.GeV):
 
     e_pdf_dict = {
         "energy_pdf_name": "power_law",
@@ -121,7 +119,9 @@ def power_law_aeff(declination_deg, spectral_index=2.0, e_min_gev=1.**2., e_max_
 
     epdf = EnergyPDF.create(e_pdf_dict)
 
-    return get_aeff(declination_deg, epdf)
+
+
+    return get_threshold_flux(declination_deg, epdf, selection=selection, purity=purity, norm_energy=norm_energy)
 
 def get_e2dnde(flux_norm, norm_energy):
 
@@ -137,7 +137,7 @@ def get_e2dnde(flux_norm, norm_energy):
 
     return e2dnde
 
-def get_nexp(flux_norm, declination_deg, energy_pdf, selection="alerts_v2", norm_energy=1.*u.GeV):
+def get_nexp(flux_norm, declination_deg, energy_pdf, selection="alerts_v2", norm_energy=10*u.GeV):
 
     flux_threshold = get_threshold_flux(
         declination_deg,
