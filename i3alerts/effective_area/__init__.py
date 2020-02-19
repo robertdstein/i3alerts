@@ -4,16 +4,20 @@ from astropy import units as u
 from flarestack.core.energy_pdf import EnergyPDF
 from i3alerts.effective_area.alerts_v1 import load_v1_aeff
 from i3alerts.effective_area.alerts_v2 import load_v2_aeff
+from i3alerts.effective_area.public_ic86 import load_ic86_aeff
 
-def load_aeff(declination_deg, selection, purity):
+def load_aeff(declination_deg, selection, subselection=None):
 
     if selection == "alerts_v2":
         aeffs = load_v2_aeff(declination_deg)
     elif selection == "alerts_v1":
         aeffs = load_v1_aeff(declination_deg)
+    elif selection == "ps_tracks":
+        aeffs = load_ic86_aeff(declination_deg)
     else:
         raise ValueError(f"Selection '{selection}' not recognised. \n"
-                         f"The following elections are available: alerts_v1, alerts_v2")
+                         f"The following elections are available: \n"
+                         f"'alerts_v1', 'alerts_v2', ps_tracks'")
 
     return aeffs
 
@@ -35,12 +39,12 @@ def integrate_aeff(aeff_df, energy_pdf):
 
     return a_eff
 
-def base_aeff(declination_deg, energy_pdf, selection="alerts_v2", purity="bronze"):
+def base_aeff(declination_deg, energy_pdf, selection="alerts_v2", subselection="bronze"):
 
     logging.info(f"You have selected a source at a declination of {declination_deg:.2g} deg, "
-                 f"with the {selection} selection and purity {purity}.")
+                 f"with the {selection} selection and subselection {subselection}.")
 
-    aeffs = load_aeff(declination_deg, selection, purity)
+    aeffs = load_aeff(declination_deg, selection, subselection)
     
     a_eff = 0.
 

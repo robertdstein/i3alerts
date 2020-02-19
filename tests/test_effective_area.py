@@ -23,7 +23,7 @@ class TestTimeIntegrated(unittest.TestCase):
 
         decs = [-45., 0., 45.]
 
-        for selection in ["alerts_v1", "alerts_v2"]:
+        for selection in ["alerts_v1", "alerts_v2", "ps_tracks"]:
             for dec in decs:
                 try:
                     get_aeff(declination_deg=dec, energy_pdf=epdf, selection=selection)
